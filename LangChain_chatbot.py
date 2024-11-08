@@ -62,13 +62,22 @@ def log_response(question, response):
 # Define grammar correction function to correct participant answers
 def grammar_check(input_text):
     if not input_text.strip():
-        return input_text.strip()
+        # Return an empty string if there's nothing to correct
+        return ''
+    prompt = f"""
+    Please correct any spelling and grammar mistakes in the following text without changing its meaning.
+    Only provide the corrected text without any additional comments or explanations.
+
+    Text: {input_text}
+    """
     messages = [
-        SystemMessage(content="Correct any spelling and grammar mistakes in the following text without changing its meaning."),
-        HumanMessage(content=f"Text to correct: '{input_text}'")
+        SystemMessage(content="You are a helpful assistant that corrects grammar and spelling."),
+        HumanMessage(content=prompt)
     ]
     corrected_response = llm.invoke(messages)
-    return corrected_response.content.strip()
+    # Extract only the corrected text
+    corrected_text = corrected_response.content.strip()
+    return corrected_text
 
 # Main topics with their initial questions
 question_topics = {
@@ -184,14 +193,17 @@ def conduct_interview():
     initial_question = "Tell me about the last memorable wine experience you've had."
     question = initial_question
     print(question)
-    response = input()
+    while True:
+        response = input()
+        corrected_response = grammar_check(response)
+        if not corrected_response.strip():
+            print("I'm sorry, I didn't catch that. Could you please share your experience?")
+            continue  # Prompt the participant again
+        break  # Exit the loop if a valid response is received
 
-    # Correct grammar of participant's answer
-    corrected_response = grammar_check(response)
+    # Log and process the response
     log_response(question, corrected_response)
     print(f"Response (Corrected): {corrected_response}\n")
-
-    # Update last_response and conversation_history
     last_response = corrected_response
     conversation_history += f"Interviewer: {question}\nParticipant: {corrected_response}\n"
 
@@ -215,8 +227,13 @@ def conduct_interview():
             next_question = generate_next_question(conversation_history, last_response, main_topic, remaining_subtopics)
             question = next_question
             print(question)
-            response = input()
-            corrected_response = grammar_check(response)
+            while True:
+                response = input()
+                corrected_response = grammar_check(response)
+                if not corrected_response.strip():
+                    print("I'm sorry, could you please provide more details?")
+                    continue  # Prompt the participant again
+                break  # Exit the loop if a valid response is received
             log_response(question, corrected_response)
             print(f"Response (Corrected): {corrected_response}\n")
             last_response = corrected_response
@@ -246,8 +263,13 @@ def conduct_interview():
             subtopic_question = generate_subtopic_question(conversation_history, last_response, main_topic, subtopic, remaining_subtopics)
             question = subtopic_question
             print(question)
-            response = input()
-            corrected_response = grammar_check(response)
+            while True:
+                response = input()
+                corrected_response = grammar_check(response)
+                if not corrected_response.strip():
+                    print("I'm sorry, could you please provide more details?")
+                    continue  # Prompt the participant again
+                break  # Exit the loop if a valid response is received
             log_response(question, corrected_response)
             print(f"Response (Corrected): {corrected_response}\n")
             last_response = corrected_response
@@ -264,8 +286,13 @@ def conduct_interview():
     # Conclude with the participant's experience level
     question = experience_question
     print(question)
-    response = input()
-    corrected_response = grammar_check(response)
+    while True:
+        response = input()
+        corrected_response = grammar_check(response)
+        if not corrected_response.strip():
+            print("I'm sorry, could you please provide more details?")
+            continue  # Prompt the participant again
+        break  # Exit the loop if a valid response is received
     log_response(question, corrected_response)
     print(f"Response (Corrected): {corrected_response}\n")
     conversation_history += f"Interviewer: {question}\nParticipant: {corrected_response}\n"
